@@ -61,10 +61,8 @@ public class TernarySearchTree {
 
 
 		TernaryTreeNode root = new TernaryTreeNode(words[words.length / 2].getLeft()[0]);
-
-
-		
-		return null;
+		balancedInsert(words, 0 , words.length - 1, root);
+		return root;
 	}
 	
 	public static void balancedInsert(Pair<char[], String>[] words, int start, int end, TernaryTreeNode root) {
