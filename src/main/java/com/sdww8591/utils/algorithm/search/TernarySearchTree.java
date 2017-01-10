@@ -1,9 +1,20 @@
 package com.sdww8591.utils.algorithm.search;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
+import com.github.stuxuhai.jpinyin.PinyinFormat;
+import com.github.stuxuhai.jpinyin.PinyinHelper;
 
 /**
  * TST node
@@ -36,14 +47,14 @@ public class TernarySearchTree {
 	 * @param words <key, word> index can not be empty
 	 * @return
 	 */
-	public static TernaryTreeNode buildTernaryTree(Pair<char[], String>[] words) {
+	public static TernaryTreeNode buildTernaryTree(List<Pair<char[], String>> wordList) {
 
-		if(words == null || words.length == 0) {
+		if(wordList == null || wordList.size() == 0) {
 
 			throw new IllegalArgumentException("word array can not be empty!");
 		}
 
-		for(Pair<char[], String> word: words) {
+		for(Pair<char[], String> word: wordList) {
 
 			if(word.getLeft() == null || word.getLeft().length == 0) {
 
@@ -51,7 +62,7 @@ public class TernarySearchTree {
 			}
 		}
 		
-		Arrays.sort(words, new Comparator<Pair<char[], String>>() {
+		Collections.sort(wordList, new Comparator<Pair<char[], String>>() {
 			@Override
 			public int compare(Pair<char[], String> o1, Pair<char[], String> o2) {
 
@@ -59,13 +70,12 @@ public class TernarySearchTree {
 			}
 		});
 
-
-		TernaryTreeNode root = new TernaryTreeNode(words[words.length / 2].getLeft()[0]);
-		balancedInsert(words, 0 , words.length - 1, root);
+		TernaryTreeNode root = new TernaryTreeNode(wordList.get(wordList.size() / 2).getLeft()[0]);
+		balancedInsert(wordList, 0 , wordList.size() - 1, root);
 		return root;
 	}
 	
-	public static void balancedInsert(Pair<char[], String>[] words, int start, int end, TernaryTreeNode root) {
+	public static void balancedInsert(List<Pair<char[], String>> wordList, int start, int end, TernaryTreeNode root) {
 
 		if(start > end) {
 
@@ -73,9 +83,9 @@ public class TernarySearchTree {
 		}
 
 		int middle = (start + end) / 2;
-		insert(words[middle], root);
-		balancedInsert(words, start, middle - 1, root);
-		balancedInsert(words, middle + 1, end, root);
+		insert(wordList.get(middle), root);
+		balancedInsert(wordList, start, middle - 1, root);
+		balancedInsert(wordList, middle + 1, end, root);
 	}
 
 	public static void insert(Pair<char[], String> word, TernaryTreeNode root) {
@@ -117,7 +127,7 @@ public class TernarySearchTree {
 
 	public static List<String> search(char[] keySeq, int depth, int max, TernaryTreeNode root) {
 
-		if(ArrayUtils.isNotEmpty(keySeq)) {
+		if(ArrayUtils.isEmpty(keySeq)) {
 
 			throw new IllegalArgumentException("search key sequence can not be empty!");
 		}
@@ -142,15 +152,51 @@ public class TernarySearchTree {
 				root = root.higherTTN;
 			}
 		}
+		
+		resultList.addAll(dfsTST(root, depth));
 
-		int currentDepth = 0;
-		while (root != null && currentDepth < depth) {
-
+		return resultList.subList(0, Math.min(max, resultList.size()));
+	}
+	
+	public static List<String> dfsTST(TernaryTreeNode root, int depth) {
+		
+		if(depth > 0 && root != null) {
+			
+			List<String> resultList = new LinkedList<String>();
 			resultList.addAll(root.value);
-			root = root.currentTTN;
-			currentDepth++;
+			resultList.addAll(dfsTST(root.lowerTTN, depth));
+			resultList.addAll(dfsTST(root.higherTTN, depth));
+			resultList.addAll(dfsTST(root.currentTTN, depth - 1));
+			return resultList;
 		}
-
-		return resultList;
+		
+		return Collections.emptyList();
+	}
+	
+	public static void main(String[] args) throws Exception{
+		
+		String path = "";
+		List<Pair<char[], String>> wordList = new LinkedList<>();
+		
+		try (FileReader fr = new FileReader(path);
+				BufferedReader br = new BufferedReader(fr)) {
+			
+			String line = null;
+			while( (line = br.readLine()) != null) {
+				
+				String word = StringUtils.trim(line);
+				wordList.add(new ImmutablePair<char[], String>(word.toCharArray(), word));
+				String pinyin = PinyinHelper.convertToPinyinString(word, "", PinyinFormat.WITHOUT_TONE);
+				wordList.add(new ImmutablePair<char[], String>(pinyin.toCharArray(), word));
+			}
+		}
+		
+		ArrayList<Pair<char[], String>> wordArray = new ArrayList<Pair<char[], String>>(wordList);
+		TernaryTreeNode root = buildTernaryTree(wordArray);
+		
+		List<String> resultList = search("wa".toCharArray(), Integer.MAX_VALUE, Integer.MAX_VALUE, root);
+		for(String result: resultList) {
+			System.out.println(result);
+		}
 	}
 }
