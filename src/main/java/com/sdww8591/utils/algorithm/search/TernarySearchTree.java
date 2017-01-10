@@ -1,4 +1,4 @@
-package com.sdww8591.utils.algorithm.search;
+package im.service.help.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -7,11 +7,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.CollectionUtils;
 
 import com.github.stuxuhai.jpinyin.PinyinFormat;
 import com.github.stuxuhai.jpinyin.PinyinHelper;
@@ -75,6 +77,13 @@ public class TernarySearchTree {
 		return root;
 	}
 	
+	/**
+	 * 尽量保证TernarySearchTree的平衡性
+	 * @param wordList 词典
+	 * @param start 待插入词序列开始下标
+	 * @param end 待插入词序列结束下标
+	 * @param root 词典树根节点
+	 */
 	public static void balancedInsert(List<Pair<char[], String>> wordList, int start, int end, TernaryTreeNode root) {
 
 		if(start > end) {
@@ -88,6 +97,11 @@ public class TernarySearchTree {
 		balancedInsert(wordList, middle + 1, end, root);
 	}
 
+	/**
+	 * 向TernaryTree中插入一个词
+	 * @param word 待插入词
+	 * @param root TernaryTree的根节点
+	 */
 	public static void insert(Pair<char[], String> word, TernaryTreeNode root) {
 
 		int index = 0;
@@ -125,6 +139,14 @@ public class TernarySearchTree {
 
 	}
 
+	/**
+	 * 从TernaryTree中找到某个char序列为前缀的所有词
+	 * @param keySeq 待搜索的char序列
+	 * @param depth 搜索深度
+	 * @param max 待选结果数
+	 * @param root TernaryTree的根节点
+	 * @return
+	 */
 	public static List<String> search(char[] keySeq, int depth, int max, TernaryTreeNode root) {
 
 		if(ArrayUtils.isEmpty(keySeq)) {
@@ -153,21 +175,88 @@ public class TernarySearchTree {
 			}
 		}
 		
-		resultList.addAll(dfsTST(root, depth));
+		resultList.addAll(bfsTST(root, depth, max));
 
 		return resultList.subList(0, Math.min(max, resultList.size()));
 	}
 	
-	public static List<String> dfsTST(TernaryTreeNode root, int depth) {
+	/**
+	 * 深度优先遍历一TernaryTree
+	 * @param root 根节点
+	 * @param depth 深度（注：TernaryTree深度的定义与普通的树不一样）
+	 * @return
+	 */
+	public static void dfsTST(TernaryTreeNode root, int depth, int max, List<String> resultList) {
+		
+		if(depth > 0 && root != null && max > 0) {
+			
+			if(resultList == null) {
+				
+				resultList = new LinkedList<String>();
+			}
+			resultList.addAll(root.value);
+			dfsTST(root.lowerTTN, depth, max, resultList);
+			dfsTST(root.higherTTN, depth, max, resultList);
+			dfsTST(root.currentTTN, depth - 1, max, resultList);
+			
+			resultList = resultList.subList(0, Math.min(max, resultList.size()));
+		}
+		
+		return;
+	}
+	
+	/**
+	 * 借助两个Queue来广度优先遍历一棵TernaryTree
+	 * @param root 根节点
+	 * @param depth 遍历深度
+	 * @param max 结果集大小
+	 * @return
+	 */
+	public static List<String> bfsTST(TernaryTreeNode root, int depth, int max) {
 		
 		if(depth > 0 && root != null) {
 			
 			List<String> resultList = new LinkedList<String>();
-			resultList.addAll(root.value);
-			resultList.addAll(dfsTST(root.lowerTTN, depth));
-			resultList.addAll(dfsTST(root.higherTTN, depth));
-			resultList.addAll(dfsTST(root.currentTTN, depth - 1));
-			return resultList;
+			Queue<TernaryTreeNode> currentQueue = new LinkedList<>();
+			Queue<TernaryTreeNode> nextQueue = new LinkedList<>();
+			currentQueue.add(root);
+			while(resultList.size() < max) {
+				
+				if(CollectionUtils.isEmpty(currentQueue)) {
+					
+					if(CollectionUtils.isEmpty(nextQueue)) {
+						
+						break;
+					} else {
+						
+						currentQueue = nextQueue;
+						nextQueue = new LinkedList<>();
+						if(--depth < 0) {
+							
+							break;
+						}
+						continue;
+					}
+				} else {
+					
+					TernaryTreeNode currentNode = currentQueue.poll();
+					resultList.addAll(currentNode.value);
+					if(currentNode.lowerTTN != null) {
+						
+						currentQueue.add(currentNode.lowerTTN);
+					}
+					if(currentNode.currentTTN != null) {
+						
+						nextQueue.add(currentNode.currentTTN);
+					}
+					if(currentNode.higherTTN != null) {
+						
+						currentQueue.add(currentNode.higherTTN);
+					}
+				}
+			}
+			
+			return resultList.subList(0, Math.min(max, resultList.size()));
 		}
 		
 		return Collections.emptyList();
