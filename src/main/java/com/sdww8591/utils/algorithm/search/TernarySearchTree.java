@@ -1,22 +1,10 @@
-package im.service.help.util;
+package com.sdww8591.utils.algorithm.search;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.util.CollectionUtils;
 
-import com.github.stuxuhai.jpinyin.PinyinFormat;
-import com.github.stuxuhai.jpinyin.PinyinHelper;
+import java.util.*;
 
 /**
  * TST node
@@ -262,7 +250,7 @@ public class TernarySearchTree {
 		return Collections.emptyList();
 	}
 	
-	public static void main(String[] args) throws Exception{
+	/*public static void main(String[] args) throws Exception{
 		
 		String path = "";
 		List<Pair<char[], String>> wordList = new LinkedList<>();
@@ -287,5 +275,5 @@ public class TernarySearchTree {
 		for(String result: resultList) {
 			System.out.println(result);
 		}
-	}
+	}*/
 }
