@@ -14,9 +14,9 @@ public class ConsistentHash <T> {
 
     private static final int DEFAULT_VIRTUAL_NODE = 128;
 
-    private static final Random rand = new Random(System.currentTimeMillis());
+    private static final Random randSeed = new Random(System.currentTimeMillis());
 
-    private TreeMap<Long, T> map = new TreeMap<>();
+    private TreeMap<Long, T> hashRing = new TreeMap<>();
 
     public ConsistentHash(int virtualNodeCount, Collection<T> objects) {
 
@@ -35,26 +35,28 @@ public class ConsistentHash <T> {
 
     private void init(Collection<T> objects) {
 
-        for(T t: objects) {
+        for(T t : objects) {
 
             for(int i = 0; i < virtualNodeCount; i++) {
 
-                map.put(rand.nextLong(), t);
+                hashRing.put(randSeed.nextLong(), t);
             }
         }
+
+        System.out.println(String.format("consistent hash ring has been initialed! total nodes: %s", hashRing.entrySet().size()));
     }
 
     public T getShard(String key) {
 
         Long hashKey = MurmurHash.hash(key);
-        Map.Entry<Long, T> target = map.higherEntry(hashKey);
-        return target == null? map.firstEntry().getValue() : target.getValue();
+        Map.Entry<Long, T> target = hashRing.higherEntry(hashKey);
+        return target == null? hashRing.firstEntry().getValue() : target.getValue();
     }
 
     public static void main(String[] args) {
 
         List<String> targets = Arrays.asList("1","2","3","4","5");
-        ConsistentHash<String> hashEntity = new ConsistentHash(targets);
+        ConsistentHash<String> hashEntity = new ConsistentHash(512, targets);
 
         Map<String, AtomicInteger> countMap = new HashMap<>();
         for(String target: targets) {
@@ -63,10 +65,10 @@ public class ConsistentHash <T> {
         }
         for(int i = 0; i < 100000; i++) {
 
-            String key = String.valueOf(rand.nextLong());
+            String key = String.valueOf(randSeed.nextLong());
             String value = hashEntity.getShard(key);
             countMap.get(value).getAndIncrement();
-            System.out.println(String.format("current %s, target: %s", key, hashEntity.getShard(key)));
+            //System.out.println(String.format("current %s, target: %s", key, hashEntity.getShard(key)));
         }
 
         for(Map.Entry<String, AtomicInteger> entry: countMap.entrySet()) {
