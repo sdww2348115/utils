@@ -15,28 +15,23 @@ public class TernarySearchTree {
 
 	public static class TernaryTreeNode {
 
-		char splitchar;
+		char keyChar;
 
-		TernaryTreeNode lowerTTN;
+		TernaryTreeNode lowerNode;
 
-		TernaryTreeNode currentTTN;
+		TernaryTreeNode equalNode;
 
-		TernaryTreeNode higherTTN;
+		TernaryTreeNode higherNode;
 
 		List<String> value = new LinkedList<String>();
 
 		public TernaryTreeNode(){}
 
-		public TernaryTreeNode(char splitchar) {
-			this.splitchar = splitchar;
+		public TernaryTreeNode(char keyChar) {
+			this.keyChar = keyChar;
 		}
 	}
 
-	/**
-	 * build a TST
-	 * @param words <key, word> index can not be empty
-	 * @return
-	 */
 	public static TernaryTreeNode buildTernaryTree(List<Pair<char[], String>> wordList) {
 
 		if(wordList == null || wordList.size() == 0) {
@@ -95,7 +90,7 @@ public class TernarySearchTree {
 		int index = 0;
 		while(true) {
 
-			if(word.getLeft()[index] == root.splitchar) {
+			if(word.getLeft()[index] == root.keyChar) {
 
 				if(++index == word.getLeft().length) {
 
@@ -103,25 +98,25 @@ public class TernarySearchTree {
 					return;
 				}
 
-				if(root.currentTTN == null) {
+				if(root.equalNode == null) {
 
-					root.currentTTN = new TernaryTreeNode(word.getLeft()[index]);
+					root.equalNode = new TernaryTreeNode(word.getLeft()[index]);
 				}
-				root = root.currentTTN;
-			} else if(word.getLeft()[index] > root.splitchar) {
+				root = root.equalNode;
+			} else if(word.getLeft()[index] > root.keyChar) {
 
-				if(root.higherTTN == null) {
+				if(root.higherNode == null) {
 
-					root.higherTTN = new TernaryTreeNode(word.getLeft()[index]);
+					root.higherNode = new TernaryTreeNode(word.getLeft()[index]);
 				}
-				root = root.higherTTN;
+				root = root.higherNode;
 			} else {
 
-				if(root.lowerTTN == null) {
+				if(root.lowerNode == null) {
 
-					root.lowerTTN = new TernaryTreeNode(word.getLeft()[index]);
+					root.lowerNode = new TernaryTreeNode(word.getLeft()[index]);
 				}
-				root = root.lowerTTN;
+				root = root.lowerNode;
 			}
 		}
 
@@ -146,20 +141,19 @@ public class TernarySearchTree {
 		List<String> resultList = new LinkedList<String>();
 		while (root != null && index < keySeq.length) {
 
-			if(keySeq[index] == root.splitchar) {
+			if(keySeq[index] == root.keyChar) {
 
 				if(++index == keySeq.length) {
 
 					resultList.addAll(root.value);
 				}
+				root = root.equalNode;
+			} else if(keySeq[index] < root.keyChar) {
 
-				root = root.currentTTN;
-			} else if(keySeq[index] < root.splitchar) {
+				root = root.lowerNode;
+			} else if(keySeq[index] > root.keyChar) {
 
-				root = root.lowerTTN;
-			} else if(keySeq[index] > root.splitchar) {
-
-				root = root.higherTTN;
+				root = root.higherNode;
 			}
 		}
 		
@@ -183,9 +177,9 @@ public class TernarySearchTree {
 				resultList = new LinkedList<String>();
 			}
 			resultList.addAll(root.value);
-			dfsTST(root.lowerTTN, depth, max, resultList);
-			dfsTST(root.higherTTN, depth, max, resultList);
-			dfsTST(root.currentTTN, depth - 1, max, resultList);
+			dfsTST(root.lowerNode, depth, max, resultList);
+			dfsTST(root.higherNode, depth, max, resultList);
+			dfsTST(root.equalNode, depth - 1, max, resultList);
 			
 			resultList = resultList.subList(0, Math.min(max, resultList.size()));
 		}
@@ -211,7 +205,11 @@ public class TernarySearchTree {
 			while(resultList.size() < max) {
 				
 				if(CollectionUtils.isEmpty(currentQueue)) {
-					
+
+                    if(--depth < 0) {
+
+                        break;
+                    }
 					if(CollectionUtils.isEmpty(nextQueue)) {
 						
 						break;
@@ -219,27 +217,23 @@ public class TernarySearchTree {
 						
 						currentQueue = nextQueue;
 						nextQueue = new LinkedList<>();
-						if(--depth < 0) {
-							
-							break;
-						}
 						continue;
 					}
 				} else {
 					
 					TernaryTreeNode currentNode = currentQueue.poll();
 					resultList.addAll(currentNode.value);
-					if(currentNode.lowerTTN != null) {
+					if(currentNode.lowerNode != null) {
 						
-						currentQueue.add(currentNode.lowerTTN);
+						currentQueue.add(currentNode.lowerNode);
 					}
-					if(currentNode.currentTTN != null) {
+					if(currentNode.equalNode != null) {
 						
-						nextQueue.add(currentNode.currentTTN);
+						nextQueue.add(currentNode.equalNode);
 					}
-					if(currentNode.higherTTN != null) {
+					if(currentNode.higherNode != null) {
 						
-						currentQueue.add(currentNode.higherTTN);
+						currentQueue.add(currentNode.higherNode);
 					}
 				}
 			}
