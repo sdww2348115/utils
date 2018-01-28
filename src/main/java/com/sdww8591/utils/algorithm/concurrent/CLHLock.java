@@ -43,7 +43,7 @@ public class CLHLock {
     class Node {
         /**
          * status为true代表线程已释放lock
-         * status为false代表线程未拿到或者正拿到lock
+         * status为false代表线程未拿到或者已经拿到lock但未释放
          */
         @Setter @Getter
         private volatile boolean status;
