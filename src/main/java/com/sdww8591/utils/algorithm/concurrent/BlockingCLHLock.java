@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BlockingCLHLock {
 
@@ -28,28 +29,48 @@ public class BlockingCLHLock {
     };
 
     public void lock() {
-        if(lockStatus.compareAndSet(false, true)) {
+        if(!lockStatus.compareAndSet(false, true)) {
+
             Node currentNode = current.get();
-            currentNode.setStatus(false);
-            head.set(currentNode);
-            tail.set(currentNode);
-        } else {
-            while(tail.get() == null) {
-                //wait the first thread complete initialization
+            //将currentNode节点放入Queue中
+            for(;;) {
+                if(tail.get() == null) {
+                    if(tail.compareAndSet(null, new Node(false))) {
+                        head.set(tail.get());
+                    }
+                } else {
+                    Node tailNode = tail.get();
+                    currentNode.setPrevious(tailNode);
+                    if(tail.compareAndSet(tailNode, currentNode)) {
+                        tailNode.setNext(currentNode);
+                        break;
+                    }
+                }
             }
-            Node currentNode = current.get();
-            currentNode.setStatus(false);
-            Node tailNode = tail.getAndSet(currentNode);
-            currentNode.previous = tailNode;
-            tailNode.next = currentNode;
-            LockSupport.park(currentNode);
+
+            //实现阻塞
+            for(;;) {
+                //在我们将node放至队列末尾时，前面的节点释放了锁，当前线程可以直接获取到锁资源，不用block
+                if(currentNode.getPrevious().equals(head.get())
+                        && lockStatus.compareAndSet(false, true)) {
+                    //由于将node添加至queue了，这里需要将node从等待队列中取出
+                    head.set(currentNode);
+                    currentNode.setNext(null); //这里是为了帮助GC
+                    break;
+                } else {
+                    LockSupport.park(currentNode);
+                    break;
+                }
+            }
         }
     }
 
     public void release() {
-        Node currentNode = current.get();
-        currentNode.setStatus(true);
-
+        for(;;) {
+            Node headNode = head.get();
+            if(head.)
+        }
+        head.compareAndSet(headNode, headNode.getNext())
     }
 
     class Node {
