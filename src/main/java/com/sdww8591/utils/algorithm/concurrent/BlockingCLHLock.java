@@ -6,7 +6,6 @@ import lombok.Setter;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class BlockingCLHLock {
 
@@ -24,7 +23,9 @@ public class BlockingCLHLock {
     private ThreadLocal<Node> current = new ThreadLocal<Node>(){
         @Override
         protected Node initialValue() {
-            return new Node(false);
+            Node result = new Node(false);
+            result.setThread(Thread.currentThread());
+            return result;
         }
     };
 
@@ -68,9 +69,15 @@ public class BlockingCLHLock {
     public void release() {
         for(;;) {
             Node headNode = head.get();
-            if(head.)
+            if(headNode.getNext() == null) {
+                this.lockStatus.compareAndSet(true, false);
+            }
+            Node nextHead = headNode.getNext();
+            if(head.compareAndSet(headNode, nextHead)) {
+                nextHead.setPrevious(null);
+                LockSupport.unpark(nextHead.thread);
+            }
         }
-        head.compareAndSet(headNode, headNode.getNext())
     }
 
     class Node {
@@ -83,10 +90,13 @@ public class BlockingCLHLock {
         private volatile boolean status;
 
         @Getter @Setter
-        private Node previous;
+        private volatile Node previous;
 
         @Getter @Setter
-        private Node next;
+        private volatile Node next;
+
+        @Getter @Setter
+        private volatile Thread thread;
 
         public Node(boolean status) {
             this.status = status;
