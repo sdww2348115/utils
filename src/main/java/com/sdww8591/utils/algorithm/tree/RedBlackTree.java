@@ -253,6 +253,22 @@ public class RedBlackTree<K extends Comparable, V> {
             return null;
         }
 
+        int com = key.compareTo(node.key);
+        if(com < 0) {
+            if(!isRed(node.left) && !isRed(node.left.left)) {
+                node = moveRedLeft(node);
+                node.left = delete(key, node.left);
+            }
+        } else {
+            if(isRed(node.left)) {
+                node = rotateRight(node);
+            }
+            if(isRed(node) && node.right == null) {
+                return null;
+            }
+        }
+
+
         for(;;) {
             int com = key.compareTo(node.key);
             if(com < 0) {
