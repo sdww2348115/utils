@@ -266,52 +266,28 @@ public class RedBlackTree<K extends Comparable, V> {
             if(isRed(node) && node.right == null) {
                 return null;
             }
-        }
-
-
-        for(;;) {
-            int com = key.compareTo(node.key);
-            if(com < 0) {
-                if(!isRed(node.left) && !isRed(node.left.left)) {
-                    node = moveRedLeft(node);
-                }
-                node.left = delete(key, node.left);
-            } else {
-                if(isRed(node.left)) {
-                    node = rotateRight(node);
-                }
-                if(com == 0 && node.right == null) {
-                    return null;
-                }
-                if(!isRed(node.right) && !isRed(node.right.left)) {
-                    node = moveRedRight(node);
-                }
-                if(com == 0) {
-                }
-            }
-        }
-
-        //Node<K, V> target = null;
-        int com = key.compareTo(node.key);
-        if(com < 0) {
-            if(!isRed(node.left) && !isRed(node.left.left)) {
-                node = moveRedLeft(node);
-            }
-            node.left = delete(key, node.left);
-        } else {
-            if(isRed(node.left)) {
-                node = rotateRight(node);
-            }
-            if(com == 0 && node.right == null) {
-                return null;
-            }
             if(!isRed(node.right) && !isRed(node.right.left)) {
                 node = moveRedRight(node);
             }
-            if(com == 0) {
+            if(key.compareTo(node.key) == 0){
+                Node<K, V> target = min(node.right);
+                node.key = target.key;
+                node.value = target.value;
+                node.right = deleteMinNode(node.right);
+            } else {
+                node.right = delete(key, node.right);
             }
         }
+        fix(node);
+        return node;
+    }
 
+    private Node<K, V> min(Node<K, V> node) {
+        if(node == null) return null;
+        while(node.left != null) {
+            node = node.left;
+        }
+        return node;
     }
 }
 
