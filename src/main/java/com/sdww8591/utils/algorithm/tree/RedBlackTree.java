@@ -174,7 +174,10 @@ public class RedBlackTree<K extends Comparable, V> {
         }
         //递归结束条件
         //TODO:为啥这里只判断node.right，而不用判断node.left
-        if(node.right == null && node.left == null) {
+        //由红黑树性质第5点：从任一节点到其每个叶子的所有简单路径包含相同数目的黑色节点
+        //因此，如果最下面一层的节点仅含有单个孩子，则该孩子一定为红色！！
+        //所以这里仅需判断node.left即可（左倾红黑树）
+        if(node.left == null) {
             return null;
         }
         //当前节点的右节点是自己的子节点，且子节点的颜色为BLACK
@@ -206,4 +209,93 @@ public class RedBlackTree<K extends Comparable, V> {
             colorFlip(node);
         }
     }
+
+    //deleteMinNode,与deleteMax类似
+    private Node<K, V> deleteMinNode(Node<K, V> node) {
+        if(node.left == null) {
+            return null;
+        }
+        if(!isRed(node.left) && !isRed(node.left.left)) {
+            node = moveRedLeft(node);
+        }
+        node.left = deleteMinNode(node.left);
+        fix(node);
+        return node;
+    }
+
+    /**
+     * 无论只执行colorflip还是需要执行右旋后左旋，都隐含了一层默认含义:
+     * return的Node.value一定大于等于参数的node.value。这一点性质对于删除处十分有必要。
+     * @param node
+     * @return
+     */
+    private Node<K, V> moveRedLeft(Node<K, V> node) {
+        colorFlip(node);
+        if(isRed(node.right.left)) {
+            node.right = rotateRight(node.right);
+            node = rotateLeft(node);
+            colorFlip(node);
+        }
+        return node;
+    }
+
+    /**
+     * 终于到了删除这一步，红黑树的删除将基于deleteMax与deleteMin方法实现
+     * 总的来说，为了保证数据结构红黑树的平衡性，所有的删除操作必须作用于Red 叶子节点！
+     * 因此，对于任意节点的删除思路为：
+     * 1. 找到将要被删除的节点
+     * 2. 将该节点右子树的最小值copy到当前节点处
+     * 3. 对节点右子树执行deleteMin（）
+     */
+    private Node<K, V> delete(K key, Node<K, V> node) {
+
+        if(root == null) {
+            return null;
+        }
+
+        for(;;) {
+            int com = key.compareTo(node.key);
+            if(com < 0) {
+                if(!isRed(node.left) && !isRed(node.left.left)) {
+                    node = moveRedLeft(node);
+                }
+                node.left = delete(key, node.left);
+            } else {
+                if(isRed(node.left)) {
+                    node = rotateRight(node);
+                }
+                if(com == 0 && node.right == null) {
+                    return null;
+                }
+                if(!isRed(node.right) && !isRed(node.right.left)) {
+                    node = moveRedRight(node);
+                }
+                if(com == 0) {
+                }
+            }
+        }
+
+        //Node<K, V> target = null;
+        int com = key.compareTo(node.key);
+        if(com < 0) {
+            if(!isRed(node.left) && !isRed(node.left.left)) {
+                node = moveRedLeft(node);
+            }
+            node.left = delete(key, node.left);
+        } else {
+            if(isRed(node.left)) {
+                node = rotateRight(node);
+            }
+            if(com == 0 && node.right == null) {
+                return null;
+            }
+            if(!isRed(node.right) && !isRed(node.right.left)) {
+                node = moveRedRight(node);
+            }
+            if(com == 0) {
+            }
+        }
+
+    }
 }
+
