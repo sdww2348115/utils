@@ -240,7 +240,7 @@ public class RedBlackTree<K extends Comparable, V> {
     }
 
     /**
-     * 终于到了删除这一步，红黑树的删除将基于deleteMax与deleteMin方法实现
+     * 终于到了删除这一步，红黑树的删除将基于deleteMax与deleteMin方法实现 
      * 总的来说，为了保证数据结构红黑树的平衡性，所有的删除操作必须作用于Red 叶子节点！
      * 因此，对于任意节点的删除思路为：
      * 1. 找到将要被删除的节点
