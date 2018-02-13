@@ -1,7 +1,7 @@
 package com.sdww8591.utils.algorithm.tree;
 
 /**
- * 红黑树是二叉平衡树的典型实现方式，许多数据结构都有应用，具体原理请参见{@link https://www.jianshu.com/p/37c845a5add6}
+ * 红黑树是二叉平衡树的典型实现方式，许多数据结构都有应用，具体原理请参见{https://www.jianshu.com/p/37c845a5add6}
  * @param <K>
  * @param <V>
  */
@@ -240,7 +240,7 @@ public class RedBlackTree<K extends Comparable, V> {
     }
 
     /**
-     * 终于到了删除这一步，红黑树的删除将基于deleteMax与deleteMin方法实现 
+     * 终于到了删除这一步，红黑树的删除将基于deleteMax与deleteMin方法实现
      * 总的来说，为了保证数据结构红黑树的平衡性，所有的删除操作必须作用于Red 叶子节点！
      * 因此，对于任意节点的删除思路为：
      * 1. 找到将要被删除的节点
