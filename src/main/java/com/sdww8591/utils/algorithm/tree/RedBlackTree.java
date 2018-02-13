@@ -269,6 +269,7 @@ public class RedBlackTree<K extends Comparable, V> {
             if(!isRed(node.right) && !isRed(node.right.left)) {
                 node = moveRedRight(node);
             }
+            //经过旋转之后，当前的node节点已不再是原来的node节点，因此要进行比较
             if(key.compareTo(node.key) == 0){
                 Node<K, V> target = min(node.right);
                 node.key = target.key;
