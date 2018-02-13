@@ -282,6 +282,11 @@ public class RedBlackTree<K extends Comparable, V> {
         return node;
     }
 
+    /**
+     * 最小值
+     * @param node
+     * @return
+     */
     private Node<K, V> min(Node<K, V> node) {
         if(node == null) return null;
         while(node.left != null) {
